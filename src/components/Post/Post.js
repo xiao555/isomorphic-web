@@ -1,7 +1,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import withStyles from 'isomorphic-style-loader/lib/withStyles'
-import s from './Post.css'
+import s from './Post.styl'
 
 class Post extends React.Component {
   static propTypes = {
@@ -17,7 +17,7 @@ class Post extends React.Component {
           <article className={s.postItem}>
             <h2>{title}</h2>
             <div
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ __html: html }}
             />
           </article>
         </div>

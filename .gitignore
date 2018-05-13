@@ -4,7 +4,7 @@
 node_modules/
 
 # Compiled output
-build
+dist
 
 # Runtime data
 database.sqlite

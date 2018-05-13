@@ -1,6 +1,6 @@
 import React from 'react'
-import Layout from '../../components/Layout'
-import Post from '../../components/Post'
+import Layout from '@/Layout'
+import Post from '@/Post'
 
 function action() {
   const notFound = {

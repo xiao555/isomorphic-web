@@ -2,7 +2,7 @@ import UniversalRouter from 'universal-router'
 
 const routes = {
   path: '',
-  // 把每个路由当做中间件处理，通过next调用
+  //  Keep in mind, routes are evaluated in order
   children: [
     {
       path: '',
@@ -15,15 +15,15 @@ const routes = {
     // 通配符路由，必须放到最后
     {
       path: '(.*)',
-      load: () => import(/* webpackChunkName: 'not-found' */ './not-found')
+      load: () => import(/* webpackChunkName: 'not-found' */ './pages/not-found')
     }
   ],
-  // 默认调用匹配路由的action方法
+
   async action({ next }) {
-    // 依次执行子路由直到命中返回结果
+    // Execute each child route until one of them return the result
     const route = await next()
 
-    // 提供 title, description 的默认值
+    //  Provide default values for title, description etc.
     route.title = `${route.title || 'Untitled Page'} - isomorphic web`
     route.description = route.description || ''
 
@@ -32,7 +32,6 @@ const routes = {
 }
 
 export default new UniversalRouter(routes, {
-  // 自定义路由处理逻辑
   resolveRoute(context, params) {
     if (typeof context.route.load === 'function') {
       return context.route
@@ -42,6 +41,6 @@ export default new UniversalRouter(routes, {
     if (typeof context.route.action === 'function') {
       return context.route.action(context, params)
     }
-    return undefined // 进入下一个路由中间件
+    return undefined
   }
 })

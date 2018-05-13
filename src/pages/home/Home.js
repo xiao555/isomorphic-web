@@ -1,7 +1,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import withStyles from 'isomorphic-style-loader/lib/withStyles'
-import s from './Home.css'
+import s from './Home.styl'
+import Link from '@/Link'
 
 class Home extends React.Component {
   static propTypes = {
@@ -21,7 +22,7 @@ class Home extends React.Component {
         {this.props.posts.map(post => (
           <article key={post.link} className={s.postItem}>
             <h1 className={s.postTitle}>
-              <a href={post.link}>{post.title}</a>
+            <Link to={post.link}>{post.title}</Link>
             </h1>
             <div
               className={s.postDesc}

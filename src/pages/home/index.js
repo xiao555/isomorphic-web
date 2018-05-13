@@ -1,8 +1,8 @@
 import React from 'react'
 import Home from './Home'
-import Layout from '../../components/Layout'
+import Layout from '@/Layout'
 
-async function action({ fetch }) {
+async function action() {
   const posts = [
     {
       title: 'Hello World',

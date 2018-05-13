@@ -1,13 +1,20 @@
 
 import koa from 'koa'
+import Router from 'koa-router'
 import middleware from './middleware'
-import log from './utils/log'
 import koaStatic from 'koa-static'
 import React from 'react'
 import ReactDOM from 'react-dom/server'
-import App from './components/App'
+import App from './components/App';
+import Html from './components/Html';
+import appRouter from './router';
+import chunks from './chunk-manifest.json';
+
+let log = console
+let port = 3002
 
 const app = new koa()
+const router = new Router()
 
 app.use(async (ctx, next) => {
   const start = new Date();
@@ -17,12 +24,15 @@ app.use(async (ctx, next) => {
   log[ctx.status == 200 ? 'info' : 'warn'](message)
 })
 
+//
+// Register Node.js middleware
+// -----------------------------------------------------------------------------
 app.use(middleware())
 
 //
-// 注册服务端渲染中间件
+// Register server-side rendering middleware
 // -----------------------------------------------------------------------------
-app.get('*', async (ctx, next) => {
+router.get('*', async (ctx, next) => {
   try {
     const css = new Set()
 
@@ -34,13 +44,14 @@ app.get('*', async (ctx, next) => {
 
     const context = {
       insertCss,
+      fetch: '',
       // The twins below are wild, be careful! 
       // for universal-router
-      pathname: req.path,
-      query: req.query,
+      pathname: ctx.path,
+      query: ctx.query,
     }
 
-    const route = await router.resolve(context)
+    const route = await appRouter.resolve(context)
     
     if (route.redirect) {
       ctx.status = route.status || 302
@@ -68,23 +79,28 @@ app.get('*', async (ctx, next) => {
     if (route.chunks) route.chunks.forEach(addChunk)
 
     data.scripts = Array.from(scripts)
+    data.app = {
+      apiUrl: process.env.API_CLIENT_URL || '',
+    };
 
     const html = ReactDOM.renderToStaticMarkup(<Html {...data} />)
     ctx.body = `<!doctype html>${html}`
   } catch (error) {
-    next(err)
+    log.error(error)
+    next(error)
   }
 })
+
+app
+  .use(router.routes())
+  .use(router.allowedMethods())
 
 //
 // 启动服务
 // -----------------------------------------------------------------------------
-const promise = models.sync().catch(err => console.error(err.stack));
 if (!module.hot) {
-  promise.then(() => {
-    app.listen(config.port, () => {
-      console.info(`The server is running at http://localhost:${config.port}/`);
-    });
+  app.listen(port, () => {
+    console.info(`The server is running at http://localhost:${port}/`);
   });
 }
 
@@ -96,4 +112,7 @@ if (module.hot) {
   module.hot.accept('./router');
 }
 
-export default app;
+export default {
+  app: app,
+  router: router
+};

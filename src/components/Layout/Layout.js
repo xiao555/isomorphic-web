@@ -4,7 +4,7 @@ import withStyles from 'isomorphic-style-loader/lib/withStyles'
 
 // external-global styles must be imported in your JS.
 import normalizeCss from 'normalize.css'
-import s from './Header.css'
+import s from './Layout.styl'
 import Header from '../Header'
 import Footer from '../Footer'
 
