@@ -4,7 +4,8 @@
   "description": "Build isomorphic web app.",
   "main": "index.js",
   "scripts": {
-    "start": "babel-node server.js",
+    "start": "babel-node build/run start",
+    "build": "babel-node build/run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

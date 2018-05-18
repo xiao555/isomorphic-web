@@ -1,33 +1,20 @@
 
 import koa from 'koa'
-import Router from 'koa-router'
-import middleware from './middleware'
-import koaStatic from 'koa-static'
+import path from 'path'
 import React from 'react'
+import Router from 'koa-router'
+import compose from 'koa-compose'
+import koaStatic from 'koa-static'
+import middleware from './middleware'
 import ReactDOM from 'react-dom/server'
-import App from './components/App';
-import Html from './components/Html';
-import appRouter from './router';
-import chunks from './chunk-manifest.json';
+import chunks from './chunk-manifest.json'
+import Html from './components/Html'
+import App from './components/App'
+import appRouter from './router'
+import config from '../config'
+import log from './utils/log'
 
-let log = console
-let port = 3002
-
-const app = new koa()
 const router = new Router()
-
-app.use(async (ctx, next) => {
-  const start = new Date();
-  await next();
-  const ms = new Date() - start;
-  const message = `${ctx.method} ${decodeURIComponent(ctx.url)} ${ctx.status} - ${ms}ms`
-  log[ctx.status == 200 ? 'info' : 'warn'](message)
-})
-
-//
-// Register Node.js middleware
-// -----------------------------------------------------------------------------
-app.use(middleware())
 
 //
 // Register server-side rendering middleware
@@ -52,7 +39,7 @@ router.get('*', async (ctx, next) => {
     }
 
     const route = await appRouter.resolve(context)
-    
+
     if (route.redirect) {
       ctx.status = route.status || 302
       ctx.redirect(route.redirect)
@@ -91,28 +78,51 @@ router.get('*', async (ctx, next) => {
   }
 })
 
-app
-  .use(router.routes())
-  .use(router.allowedMethods())
+function start() {
+  const app = new koa()
+  const port = process.env.PORT || config.prod.port
 
-//
-// 启动服务
-// -----------------------------------------------------------------------------
-if (!module.hot) {
+  // Timer
+  app.use(async (ctx, next) => {
+    const start = new Date();
+    await next();
+    const ms = new Date() - start;
+    const message = `${ctx.method} ${decodeURIComponent(ctx.url)} ${ctx.status} - ${ms}ms`
+    log[ctx.status == 200 ? 'info' : 'warn'](message)
+  })
+
+  // Register Node.js middleware
+  app.use(koaStatic(path.resolve(__dirname, 'public')))
+  app.use(middleware())
+
+  // Register Node.js router
+  app
+    .use(router.routes())
+    .use(router.allowedMethods())
+
   app.listen(port, () => {
     console.info(`The server is running at http://localhost:${port}/`);
   });
 }
 
 //
-// 模块热重载 HMR
+// Start server
+// -----------------------------------------------------------------------------
+if (!module.hot) {
+  start()
+}
+
+//
+// Hot Module Replacement
 // -----------------------------------------------------------------------------
 if (module.hot) {
-  app.hot = module.hot;
   module.hot.accept('./router');
 }
 
 export default {
-  app: app,
-  router: router
+  hot: module.hot,
+  router: compose([
+    router.routes(),
+    router.allowedMethods()
+  ])
 };

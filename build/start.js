@@ -1,12 +1,14 @@
-import path from 'path'
 import koa from 'koa'
 import opn from 'opn'
+import path from 'path'
+import clean from './clean'
 import webpack from 'webpack'
-import clientConfig from './build/webpack.client.config'
-import serverConfig from './build/webpack.server.config'
+import config from '../config'
+import run, { format } from './run'
+import clientConfig from './webpack.client.config'
+import serverConfig from './webpack.server.config'
 import koaDevMiddleware from 'koa-webpack-dev-middleware'
 import koaHotMiddleware from 'koa-webpack-hot-middleware'
-import config from './config'
 
 const isDebug = !process.argv.includes('--release')
 // default port where dev server listens for incoming traffic
@@ -20,10 +22,6 @@ const watchOptions = {
   // poll: true,
   // Decrease CPU or memory usage in some file systems
   // ignored: /node_modules/,
-};
-
-function format(time) {
-  return time.toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, '$1');
 }
 
 function createCompilationPromise(name, compiler, config) {
@@ -55,13 +53,11 @@ function createCompilationPromise(name, compiler, config) {
   })
 }
 
-let server
+let app
 
 async function start() {
-  console.log('start');
-  
-  if (server) return server
-  server = new koa()
+  if (app) return app
+  app = new koa()
 
   // Configure client-side hot module replacement
   clientConfig.entry.client = [`webpack-hot-middleware/client`, ...clientConfig.entry.client]
@@ -80,7 +76,7 @@ async function start() {
   serverConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
 
   // Configure compilation
-  // await run(clean)
+  await run(clean)
   const clientCompiler = webpack(clientConfig)
   const serverCompiler = webpack(serverConfig)
   const clientPromise = createCompilationPromise(
@@ -97,37 +93,27 @@ async function start() {
   // https://github.com/yiminghe/koa-webpack-dev-middleware
   let devMiddleware = koaDevMiddleware(clientCompiler, {
     publicPath: clientConfig.output.publicPath,
-    // logLevel: 'silent',
+    logLevel: 'silent',
     noInfo: true,
     watchOptions,
   })
-  server.use(devMiddleware)
+  app.use(devMiddleware)
 
   // https://github.com/octatone/koa-webpack-hot-middleware
-  server.use(koaHotMiddleware(clientCompiler, { log: false }));
+  app.use(koaHotMiddleware(clientCompiler, { log: false }));
 
-  let appPromise;
-  let appPromiseResolve;
-  let appPromiseIsResolved = true;
-  serverCompiler.hooks.compile.tap('server', () => {
-    if (!appPromiseIsResolved) return;
-    appPromiseIsResolved = false;
-    // eslint-disable-next-line no-return-assign
-    appPromise = new Promise(resolve => (appPromiseResolve = resolve));
-  });
-
-  let app;
-  let router;
+  // server.js
+  let server
 
   function checkForUpdate(fromUpdate) {
     const hmrPrefix = '[\x1b[35mHMR\x1b[0m] ';
-    if (!app.hot) {
+    if (!server.hot) {
       throw new Error(`${hmrPrefix}Hot Module Replacement is disabled.`);
     }
-    if (app.hot.status() !== 'idle') {
+    if (server.hot.status() !== 'idle') {
       return Promise.resolve();
     }
-    return app.hot
+    return server.hot
       .check(true)
       .then(updatedModules => {
         if (!updatedModules) {
@@ -147,12 +133,12 @@ async function start() {
         }
       })
       .catch(error => {
-        if (['abort', 'fail'].includes(app.hot.status())) {
+        if (['abort', 'fail'].includes(server.hot.status())) {
           console.warn(`${hmrPrefix}Cannot apply update.`);
-          delete require.cache[require.resolve('./dist/server')];
+          delete require.cache[require.resolve('../dist/server')];
           // eslint-disable-next-line global-require, import/no-unresolved
-          app = require('./dist/server').default;
-          console.warn(`${hmrPrefix}App has been reloaded.`);
+          server = require('../dist/server').default;
+          console.warn(`${hmrPrefix}Server has been reloaded.`);
         } else {
           console.warn(
             `${hmrPrefix}Update failed: ${error.stack || error.message}`,
@@ -162,11 +148,8 @@ async function start() {
   }
 
   serverCompiler.watch(watchOptions, (error, stats) => {
-    if (app && !error && !stats.hasErrors()) {
-      checkForUpdate().then(() => {
-        appPromiseIsResolved = true;
-        appPromiseResolve();
-      });
+    if (server && !error && !stats.hasErrors()) {
+      checkForUpdate()
     }
   });
 
@@ -179,22 +162,23 @@ async function start() {
 
   // Load compiled src/server.js as a middleware
   // eslint-disable-next-line global-require, import/no-unresolved
-  app = require('./dist/server').default.app;
-  router = require('./dist/server').default.router;
-  appPromiseIsResolved = true;
-  appPromiseResolve();
+  server = require('../dist/server').default
 
-  server
-    .use(router.routes())
-    .use(router.allowedMethods())
-  
-
-  const uri = 'http://localhost:' + port
-
-  let _resolve
-  let readyPromise = new Promise(resolve => {
-    _resolve = resolve
+  // Timer
+  app.use(async (ctx, next) => {
+    const start = new Date();
+    await next();
+    const ms = new Date() - start;
+    const message = `${ctx.method} ${decodeURIComponent(ctx.url)} ${ctx.status} - ${ms}ms`
+    console[ctx.status == 200 ? 'info' : 'warn'](message)
   })
+  
+  // Register server-side-render router 
+  app.use(async (ctx, next) => {
+    await server.router(ctx, next)
+  })
+  
+  const uri = `http://localhost:${port}`
 
   devMiddleware.waitUntilValid(() => {
     const timeEnd = new Date();
@@ -204,18 +188,11 @@ async function start() {
     if (autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
       opn(uri)
     }
-    _resolve()
   })
   
-  server.listen(port)
+  app.listen(port)
 
-  return server;
-}
-
-try {
-  start()
-} catch (error) {
-  console.error(error);
+  return app;
 }
 
 export default start;
