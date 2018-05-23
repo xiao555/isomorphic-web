@@ -1,13 +1,13 @@
 import React from 'react'
-import Home from './Home'
 import Layout from '@/Layout'
+import Post from '@/Post'
 
-async function action({ fetch }) {
+async function action({ fetch, params }) {
   const resp = await fetch('/graphql', {
     body: JSON.stringify({
-      query: 
+      query:
         `{
-          articles {
+          article(id: "${params.id}") {
             title
             link
             author
@@ -16,17 +16,17 @@ async function action({ fetch }) {
         }`
     })
   })
+
   const { data } = await resp.json()
-  
 
   return {
-    title: 'Isomorphic Web App',
-    chunks: ['home'],
+    chunks: ['posts'],
+    title: data.title,
     component: (
       <Layout>
-        <Home posts={data.articles} />
+        <Post {...data.article} />
       </Layout>
-    )
+    ),
   }
 }
 

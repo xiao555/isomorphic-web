@@ -9,8 +9,12 @@ const routes = {
       load: () => import(/* webpackChunkName: 'home' */ './pages/home')
     },
     {
-      path: '',
+      path: '/about',
       load: () => import(/* webpackChunkName: 'about' */ './pages/about')
+    },
+    {
+      path: '/posts/:id',
+      load: () => import(/* webpackChunkName: 'posts' */ './pages/posts')
     },
     {
       path: '(.*)',

@@ -10,6 +10,7 @@ class Home extends React.Component {
       PropTypes.shape({
         title: PropTypes.string.isRequired,
         link: PropTypes.string.isRequired,
+        author: PropTypes.string.isRequired,
         content: PropTypes.string,
       })
     ).isRequired
@@ -18,18 +19,20 @@ class Home extends React.Component {
   render() {
     return (
       <main className={s.root}>
-        <h2>Articles</h2>
-        {this.props.posts.map(post => (
-          <article key={post.link} className={s.postItem}>
-            <h1 className={s.postTitle}>
-            <Link to={post.link}>{post.title}</Link>
-            </h1>
-            <div
-              className={s.postDesc}
-              dangerouslySetInnerHTML={{ __html: post.content}}
-            />
-          </article>
-        ))}
+        <div className={s.container}>
+          <h2>Articles</h2>
+          {this.props.posts.map(post => (
+            <article key={post.link} className={s.postItem}>
+              <h1 className={s.postTitle}>
+                <Link to={`/posts/${post.link}`}>{post.title}</Link>
+              </h1>
+              <div
+                className={s.postDesc}
+                dangerouslySetInnerHTML={{ __html: post.content}}
+              />
+            </article>
+          ))}
+        </div>
       </main>
     )
   }

@@ -1,34 +1,6 @@
-/**
- * React Starter Kit (https://www.reactstarterkit.com/)
- *
- * Copyright © 2014-present Kriasoft, LLC. All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE.txt file in the root directory of this source tree.
- */
-
-/* @flow */
-
-import type { graphql as graphqType, GraphQLSchema } from 'graphql';
-
-type Fetch = (url: string, options: ?any) => Promise<any>;
-
-type Options = {
-  baseUrl: string,
-  cookie?: string,
-  schema?: GraphQLSchema,
-  graphql?: graphqType,
-};
-
-/**
- * Creates a wrapper function around the HTML5 Fetch API that provides
- * default arguments to fetch(...) and is intended to reduce the amount
- * of boilerplate code in the application.
- * https://developer.mozilla.org/docs/Web/API/Fetch_API/Using_Fetch
- */
 function createFetch(
-  fetch: Fetch,
-  { baseUrl, cookie, schema, graphql }: Options,
+  fetch,
+  { baseUrl, cookie, schema, graphql },
 ) {
   // NOTE: Tweak the default options to suite your application needs
   const defaults = {
@@ -42,7 +14,7 @@ function createFetch(
     },
   };
 
-  return async (url: string, options: any) => {
+  return async (url, options) => {
     const isGraphQL = url.startsWith('/graphql');
     if (schema && graphql && isGraphQL) {
       // We're SSR, so route the graphql internal to avoid latency

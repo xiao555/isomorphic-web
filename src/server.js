@@ -1,20 +1,33 @@
-
-import koa from 'koa'
 import path from 'path'
-import React from 'react'
+import koa from 'koa'
 import Router from 'koa-router'
-import compose from 'koa-compose'
 import koaStatic from 'koa-static'
+import compose from 'koa-compose'
 import middleware from './middleware'
+import nodeFetch from 'node-fetch'
+import React from 'react'
 import ReactDOM from 'react-dom/server'
-import chunks from './chunk-manifest.json'
-import Html from './components/Html'
 import App from './components/App'
+import Html from './components/Html'
 import appRouter from './router'
+import chunks from './chunk-manifest.json'
+import createFetch from './createFetch'
+import { graphql } from 'graphql'
+import schema from './data/schema'
+import { graphqlKoa, graphiqlKoa } from 'apollo-server-koa'
 import config from '../config'
 import log from './utils/log'
 
 const router = new Router()
+
+router.all('/graphql', graphqlKoa({ schema }))
+
+router.get(
+  '/graphiql',
+  graphiqlKoa({
+    endpointURL: '/graphql', // a POST endpoint that GraphiQL will make the actual requests to
+  }),
+);
 
 //
 // Register server-side rendering middleware
@@ -29,9 +42,17 @@ router.get('*', async (ctx, next) => {
       styles.forEach(style => css.add(style._getCss()))
     }
 
+    // Universal HTTP client
+    const fetch = createFetch(nodeFetch, {
+      baseUrl: config.api.serverUrl,
+      cookie: ctx.cookie,
+      schema,
+      graphql,
+    });
+
     const context = {
       insertCss,
-      fetch: '',
+      fetch: fetch,
       // The twins below are wild, be careful! 
       // for universal-router
       pathname: ctx.path,
@@ -67,7 +88,7 @@ router.get('*', async (ctx, next) => {
 
     data.scripts = Array.from(scripts)
     data.app = {
-      apiUrl: process.env.API_CLIENT_URL || '',
+      apiUrl: config.api.clientUrl,
     };
 
     const html = ReactDOM.renderToStaticMarkup(<Html {...data} />)

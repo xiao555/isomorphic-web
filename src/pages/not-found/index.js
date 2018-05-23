@@ -5,7 +5,7 @@ import Post from '@/Post'
 function action() {
   const notFound = {
     title: "404",
-    html: "Sorry, the page you were trying to view does not exist.",
+    content: "Sorry, the page you were trying to view does not exist.",
   }
 
   return {

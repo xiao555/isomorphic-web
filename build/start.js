@@ -9,6 +9,8 @@ import clientConfig from './webpack.client.config'
 import serverConfig from './webpack.server.config'
 import koaDevMiddleware from 'koa-webpack-dev-middleware'
 import koaHotMiddleware from 'koa-webpack-hot-middleware'
+import middleware from '../src/middleware'
+import koaStatic from 'koa-static'
 
 const isDebug = !process.argv.includes('--release')
 // default port where dev server listens for incoming traffic
@@ -172,7 +174,11 @@ async function start() {
     const message = `${ctx.method} ${decodeURIComponent(ctx.url)} ${ctx.status} - ${ms}ms`
     console[ctx.status == 200 ? 'info' : 'warn'](message)
   })
-  
+
+  // Register Node.js middleware
+  app.use(koaStatic(path.resolve(__dirname, '../static')))
+  app.use(middleware())
+
   // Register server-side-render router 
   app.use(async (ctx, next) => {
     await server.router(ctx, next)

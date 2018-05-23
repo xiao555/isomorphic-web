@@ -5,7 +5,7 @@ import Post from '@/Post'
 function action() {
   const about = {
     title: "About Us",
-    html: "<p>Isomorphic Web App By React and Koa.</p>",
+    content: "<p>Isomorphic Web App By React and Koa.</p>",
   }
 
   return {
