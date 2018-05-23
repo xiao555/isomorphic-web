@@ -28,7 +28,7 @@ export default {
   mode: isDebug ? 'development' : 'production',
 
   output: {
-    path: resolvePath(DIST_DIR, 'public/assets'),
+    path: resolvePath(DIST_DIR, 'static/assets'),
     publicPath: '/assets/',
     pathinfo: isVerbose,
     filename: isDebug ? '[name].js' : '[name].[chunkhash:8].js',

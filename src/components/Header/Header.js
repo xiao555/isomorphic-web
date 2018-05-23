@@ -16,13 +16,13 @@ class Header extends React.Component {
         </div>
         <div className={s.banner}>
           <h1 className={s.bannerTitle}>Isomorphic Web App</h1>
-          <Link 
+          <a 
             className={s.bannerLink} 
-            to="https://github.com/xiao555/isomorphic-web"
+            href="https://github.com/xiao555/isomorphic-web"
             target="_blank"
             >
             Github
-          </Link>
+          </a>
         </div>
       </header>
     )

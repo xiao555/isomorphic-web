@@ -30,11 +30,11 @@ async function copy() {
     ).catch(handleErr),
     copyFile('LICENSE.txt', 'dist/LICENSE.txt').catch(handleErr),
     copyFile('yarn.lock', 'dist/yarn.lock').catch(handleErr),
-    copyDir('public', 'dist/public').catch(handleErr),
+    copyDir('static', 'dist/static').catch(handleErr),
   ])
 
   if (process.argv.includes('--watch')) {
-    const watcher = chokidar.watch(['public/**/*'], { ignoreInitial: true })
+    const watcher = chokidar.watch(['static/**/*'], { ignoreInitial: true })
 
     watcher.on('all', async (event, filePath) => {
       const start = new Date()

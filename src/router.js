@@ -12,7 +12,6 @@ const routes = {
       path: '',
       load: () => import(/* webpackChunkName: 'about' */ './pages/about')
     },
-    // 通配符路由，必须放到最后
     {
       path: '(.*)',
       load: () => import(/* webpackChunkName: 'not-found' */ './pages/not-found')

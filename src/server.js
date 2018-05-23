@@ -92,7 +92,7 @@ function start() {
   })
 
   // Register Node.js middleware
-  app.use(koaStatic(path.resolve(__dirname, 'public')))
+  app.use(koaStatic(path.resolve(__dirname, 'static')))
   app.use(middleware())
 
   // Register Node.js router

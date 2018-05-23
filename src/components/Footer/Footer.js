@@ -10,13 +10,13 @@ class Footer extends React.Component {
         <div className={s.container}>
           <span className={s.text}>© Xiao555</span>
           <span className={s.spacer}>·</span>
-          <Link 
+          <a 
             className={s.link} 
-            to="https://github.com/xiao555"
+            href="https://github.com/xiao555"
             target="_blank"
             >
             Github
-          </Link>
+          </a>
         </div>
       </footer>
     )
