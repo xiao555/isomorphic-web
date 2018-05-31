@@ -26,7 +26,7 @@ const watchOptions = {
   // ignored: /node_modules/,
 }
 
-function createCompilationPromise(name, compiler, config) {
+function createCompilationPromise(name, compiler, config, showStats) {
   return new Promise((resolve, reject) => {
     let timeStart = new Date()
     compiler.hooks.compile.tap(name, () => {
@@ -35,7 +35,7 @@ function createCompilationPromise(name, compiler, config) {
     })
 
     compiler.hooks.done.tap(name, stats => {
-      console.info(stats.toString(config.stats))
+      showStats && console.info(stats.toString(config.stats))
       const timeEnd = new Date()
       const time = timeEnd.getTime() - timeStart.getTime()
       if (stats.hasErrors()) {
@@ -57,7 +57,11 @@ function createCompilationPromise(name, compiler, config) {
 
 let app
 
-async function start() {
+async function start(options = {
+  silent: false,
+  showStats: true,
+  autoOpenBrowser: true,
+}) {
   if (app) return app
   app = new koa()
 
@@ -78,18 +82,20 @@ async function start() {
   serverConfig.plugins.push(new webpack.HotModuleReplacementPlugin());
 
   // Configure compilation
-  await run(clean)
+  await run(clean, options)
   const clientCompiler = webpack(clientConfig)
   const serverCompiler = webpack(serverConfig)
   const clientPromise = createCompilationPromise(
     'client',
     clientCompiler,
     clientConfig,
+    options.showStats,
   );
   const serverPromise = createCompilationPromise(
     'server',
     serverCompiler,
     serverConfig,
+    options.showStats,
   );
 
   // https://github.com/yiminghe/koa-webpack-dev-middleware
@@ -191,14 +197,12 @@ async function start() {
     const time = timeEnd.getTime() - timeStart.getTime();
     console.info(`[${format(timeEnd)}] Server launched at ${uri} after ${time} ms`);
     // when env is testing, don't need open it
-    if (autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
+    if (options.autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
       opn(uri)
     }
   })
   
-  app.listen(port)
-
-  return app;
+  return app.listen(port)
 }
 
 export default start;

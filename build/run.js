@@ -2,21 +2,21 @@ export function format(time) {
   return time.toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, '$1');
 }
 
-function run(fn, options) {
+function run(fn, options = {
+  silent: false,
+  showStats: true,
+  autoOpenBrowser: true,
+}) {
   const task = typeof fn.default === 'undefined' ? fn : fn.default;
   const start = new Date();
-  console.info(
-    `[${format(start)}] Starting '${task.name}${
-      options ? ` (${options})` : ''
-    }'...`,
+  !options.silent && console.info(
+    `[${format(start)}] Starting '${task.name}'...`,
   );
   return task(options).then(resolution => {
     const end = new Date();
     const time = end.getTime() - start.getTime();
-    console.info(
-      `[${format(end)}] Finished '${task.name}${
-        options ? ` (${options})` : ''
-      }' after ${time} ms`,
+    !options.silent &&  console.info(
+      `[${format(end)}] Finished '${task.name}' after ${time} ms`,
     );
     return resolution;
   });

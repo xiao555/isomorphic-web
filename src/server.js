@@ -58,7 +58,7 @@ router.get('*', async (ctx, next) => {
       pathname: ctx.path,
       query: ctx.query,
     }
-
+    
     const route = await appRouter.resolve(context)
 
     if (route.redirect) {
