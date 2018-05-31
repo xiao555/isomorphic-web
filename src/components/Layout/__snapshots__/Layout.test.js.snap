@@ -1,0 +1,86 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Layout renders children correctly 1`] = `
+<div>
+  <header>
+    <div
+      className="container"
+    >
+      <div
+        className="root"
+        role="navigation"
+      >
+        <a
+          className="link"
+          href="./home"
+          onClick={[Function]}
+        >
+          Home
+        </a>
+        <a
+          className="link"
+          href="./about"
+          onClick={[Function]}
+        >
+          About
+        </a>
+      </div>
+      <a
+        className="brand"
+        href="/"
+        onClick={[Function]}
+      >
+        <span
+          className="brandTxt"
+        >
+          Logo
+        </span>
+      </a>
+    </div>
+    <div
+      className="banner"
+    >
+      <h1
+        className="bannerTitle"
+      >
+        Isomorphic Web App
+      </h1>
+      <a
+        className="bannerLink"
+        href="https://github.com/xiao555/isomorphic-web"
+        target="_blank"
+      >
+        Github
+      </a>
+    </div>
+  </header>
+  <div
+    className="child"
+  />
+  <footer
+    className="root"
+  >
+    <div
+      className="container"
+    >
+      <span
+        className="text"
+      >
+        © Xiao555
+      </span>
+      <span
+        className="spacer"
+      >
+        ·
+      </span>
+      <a
+        className="link"
+        href="https://github.com/xiao555"
+        target="_blank"
+      >
+        Github
+      </a>
+    </div>
+  </footer>
+</div>
+`;
