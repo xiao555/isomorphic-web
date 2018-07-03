@@ -71,7 +71,7 @@ router.get('*', async (ctx, next) => {
     data.children = ReactDOM.renderToString(
       <App context={context}>{route.component}</App>
     )
-    data.styles = [{ id: 'css', cssText: [...css].join('') }]
+    data.styles = [{ id: 'css', cssText: [...css].join('').replace(/(\/{2,}.*?(\r|\n))|(\/\*(\n|.)*?\*\/)/g, '').replace(/\n/g, ' ').replace(/ +/g, ' ') }]
 
     const scripts = new Set()
     const addChunk = chunk => {

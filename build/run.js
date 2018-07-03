@@ -1,3 +1,5 @@
+import chalk from 'chalk'
+
 export function format(time) {
   return time.toTimeString().replace(/.*(\d{2}:\d{2}:\d{2}).*/, '$1');
 }
@@ -10,13 +12,13 @@ function run(fn, options = {
   const task = typeof fn.default === 'undefined' ? fn : fn.default;
   const start = new Date();
   !options.silent && console.info(
-    `[${format(start)}] Starting '${task.name}'...`,
+    `[${chalk.green(format(start))}] Starting '${chalk.green(task.name)}'...`,
   );
   return task(options).then(resolution => {
     const end = new Date();
     const time = end.getTime() - start.getTime();
     !options.silent &&  console.info(
-      `[${format(end)}] Finished '${task.name}' after ${time} ms`,
+      `[${chalk.green(format(end))}] Finished '${chalk.green(task.name)}' after ${chalk.green(time)} ms`,
     );
     return resolution;
   });

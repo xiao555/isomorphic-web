@@ -102,6 +102,7 @@ export default {
   },
 
   externals: [
+    // ignore after-build files
     './chunk-manifest.json',
     './asset-manifest.json',
     nodeExternals({

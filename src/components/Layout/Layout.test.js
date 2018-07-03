@@ -14,7 +14,7 @@ describe('Test Layout', () => {
         </App>,
       )
       .toJSON();
-
+    
     expect(wrapper).toMatchSnapshot();
   });
 });

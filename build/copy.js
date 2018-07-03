@@ -1,10 +1,11 @@
 import path from 'path'
+import chalk from 'chalk'
 import chokidar from 'chokidar'
 import { writeFile, copyFile, makeDir, copyDir, cleanDir } from './lib/fs'
 import pkg from '../package.json'
 import { format } from './run'
 
-const handleErr = err => console.error(err)
+const handleErr = err => console.error(chalk.yellow(err.message))
 
 /**
  * Copies static files such as robots.txt, favicon.ico to the

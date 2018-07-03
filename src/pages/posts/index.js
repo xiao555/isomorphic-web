@@ -21,7 +21,7 @@ async function action({ fetch, params }) {
 
   return {
     chunks: ['posts'],
-    title: data.title,
+    title: data.article.title,
     component: (
       <Layout>
         <Post {...data.article} />

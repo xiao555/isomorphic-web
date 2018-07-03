@@ -1,6 +1,7 @@
 import koa from 'koa'
 import opn from 'opn'
 import path from 'path'
+import chalk from 'chalk'
 import clean from './clean'
 import webpack from 'webpack'
 import config from '../config'
@@ -11,6 +12,7 @@ import koaDevMiddleware from 'koa-webpack-dev-middleware'
 import koaHotMiddleware from 'koa-webpack-hot-middleware'
 import middleware from '../src/middleware'
 import koaStatic from 'koa-static'
+import convert from 'koa-convert'
 
 const isDebug = !process.argv.includes('--release')
 // default port where dev server listens for incoming traffic
@@ -26,28 +28,28 @@ const watchOptions = {
   // ignored: /node_modules/,
 }
 
-function createCompilationPromise(name, compiler, config, showStats) {
+function createCompilationPromise(name, compiler, config, options) {
   return new Promise((resolve, reject) => {
     let timeStart = new Date()
     compiler.hooks.compile.tap(name, () => {
       timeStart = new Date()
-      console.info(`[${format(timeStart)}] Compiling '${name}'...`)
+      !options.silent && console.info(`[${chalk.green(format(timeStart))}] Compiling '${chalk.green(name)}'...`)
     })
 
     compiler.hooks.done.tap(name, stats => {
-      showStats && console.info(stats.toString(config.stats))
+      options.showStats && console.info(stats.toString(config.stats))
       const timeEnd = new Date()
       const time = timeEnd.getTime() - timeStart.getTime()
       if (stats.hasErrors()) {
-        console.info(
-          `[${format(timeEnd)}] Failed to compile '${name}' after ${time} ms`,
+        !options.silent && console.info(
+          `[${chalk.red(format(timeEnd))}] Failed to compile '${chalk.red(name)}' after ${chalk.red(time)} ms`,
         )
         reject(new Error('Compilation failed!'))
       } else {
-        console.info(
-          `[${format(
+        !options.silent && console.info(
+          `[${chalk.green(format(
             timeEnd,
-          )}] Finished '${name}' compilation after ${time} ms`,
+          ))}] Finished '${chalk.green(name)}' compilation after ${chalk.green(time)} ms`,
         )
         resolve(stats)
       }
@@ -89,13 +91,13 @@ async function start(options = {
     'client',
     clientCompiler,
     clientConfig,
-    options.showStats,
+    options,
   );
   const serverPromise = createCompilationPromise(
     'server',
     serverCompiler,
     serverConfig,
-    options.showStats,
+    options,
   );
 
   // https://github.com/yiminghe/koa-webpack-dev-middleware
@@ -166,14 +168,14 @@ async function start(options = {
   await serverPromise;
 
   const timeStart = new Date();
-  console.info(`[${format(timeStart)}] Launching server...`);
+  !options.silent && console.info(`[${chalk.green(format(timeStart))}] Launching server...`);
 
   // Load compiled src/server.js as a middleware
   // eslint-disable-next-line global-require, import/no-unresolved
   server = require('../dist/server').default
 
   // Timer
-  app.use(async (ctx, next) => {
+  !options.silent && app.use(async (ctx, next) => {
     const start = new Date();
     await next();
     const ms = new Date() - start;
@@ -195,7 +197,7 @@ async function start(options = {
   devMiddleware.waitUntilValid(() => {
     const timeEnd = new Date();
     const time = timeEnd.getTime() - timeStart.getTime();
-    console.info(`[${format(timeEnd)}] Server launched at ${uri} after ${time} ms`);
+    !options.silent && console.info(`[${chalk.green(format(timeEnd))}] Server launched at ${chalk.cyan(uri)} after ${chalk.green(time)} ms`);
     // when env is testing, don't need open it
     if (options.autoOpenBrowser && process.env.NODE_ENV !== 'testing') {
       opn(uri)
